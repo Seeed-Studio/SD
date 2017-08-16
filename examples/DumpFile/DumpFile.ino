@@ -2,7 +2,7 @@
   SD card file dump
  
  This example shows how to read a file from the SD card using the
- SD library and send it over the serial port.
+ SD library and send it over the serialUSB port.
  	
  The circuit:
  * SD card attached to SPI bus as follows:
@@ -14,41 +14,33 @@
  
  created  22 December 2010  by Limor Fried
  modified 9 Apr 2012  by Tom Igoe
+ modified 16 Aug 2017  by Lambor Fang
  
  This example code is in the public domain.
  	 
  */
-
-#include <SPI.h>
 #include <SD.h>
 
 // change this to match your SD shield or module;
 //     Arduino Ethernet shield: pin 4
 //     Adafruit SD shields and modules: pin 10
 //     Sparkfun SD shield: pin 8
-const int chipSelect = 4;
+const int chipSelect = 43;
 
 void setup()
 {
- // Open serial communications and wait for port to open:
-  Serial.begin(9600);
-   while (!Serial) {
-    ; // wait for serial port to connect. Needed for Leonardo only
-  }
-
-
-  Serial.print("Initializing SD card...");
+  SerialUSB.print("Initializing SD card...");
   // make sure that the default chip select pin is set to
   // output, even if you don't use it:
   pinMode(SS, OUTPUT);
   
   // see if the card is present and can be initialized:
   if (!SD.begin(chipSelect)) {
-    Serial.println("Card failed, or not present");
+    SerialUSB.println("Card failed, or not present");
     // don't do anything more:
     return;
   }
-  Serial.println("card initialized.");
+  SerialUSB.println("card initialized.");
   
   // open the file. note that only one file can be open at a time,
   // so you have to close this one before opening another.
@@ -57,13 +49,13 @@ void setup()
   // if the file is available, write to it:
   if (dataFile) {
     while (dataFile.available()) {
-      Serial.write(dataFile.read());
+      SerialUSB.write(dataFile.read());
     }
     dataFile.close();
   }  
   // if the file isn't open, pop up an error:
   else {
-    Serial.println("error opening datalog.txt");
+    SerialUSB.println("error opening datalog.txt");
   } 
 }
 

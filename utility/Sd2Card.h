@@ -17,12 +17,15 @@
  * along with the Arduino Sd2Card Library.  If not, see
  * <http://www.gnu.org/licenses/>.
  */
+
+
 #ifndef Sd2Card_h
 #define Sd2Card_h
 /**
  * \file
  * Sd2Card class
  */
+#include "platform_conf.h"
 #include "Sd2PinMap.h"
 #include "SdInfo.h"
 /** Set SCK to max rate of F_CPU/2. See Sd2Card::setSckRate(). */
@@ -35,7 +38,8 @@ uint8_t const SPI_QUARTER_SPEED = 2;
  * USE_SPI_LIB: if set, use the SPI library bundled with Arduino IDE, otherwise
  * run with a standalone driver for AVR.
  */
-#define USE_SPI_LIB
+// #define USE_SPI_LIB
+
 /**
  * Define MEGA_SOFT_SPI non-zero to use software SPI on Mega Arduinos.
  * Pins used are SS 10, MOSI 11, MISO 12, and SCK 13.
@@ -78,13 +82,13 @@ uint8_t const  SPI_SCK_PIN = SCK_PIN;
 #else  // SOFTWARE_SPI
 // define software SPI pins so Mega can use unmodified GPS Shield
 /** SPI chip select pin */
-uint8_t const SD_CHIP_SELECT_PIN = 10;
+uint8_t const SD_CHIP_SELECT_PIN = 11; //10;
 /** SPI Master Out Slave In pin */
-uint8_t const SPI_MOSI_PIN = 11;
+uint8_t const SPI_MOSI_PIN = 50; //11;
 /** SPI Master In Slave Out pin */
-uint8_t const SPI_MISO_PIN = 12;
+uint8_t const SPI_MISO_PIN = 40; //12;
 /** SPI Clock pin */
-uint8_t const SPI_SCK_PIN = 13;
+uint8_t const SPI_SCK_PIN = 44; //13;
 #endif  // SOFTWARE_SPI
 //------------------------------------------------------------------------------
 /** Protect block zero from write if nonzero */

@@ -17,18 +17,40 @@
  * along with the Arduino SdFat Library.  If not, see
  * <http://www.gnu.org/licenses/>.
  */
-#if defined(__arm__) // Arduino Due Board follows
 
+
+#if defined(__arm__) // Arduino Due Board follows
+ 
 #ifndef Sd2PinMap_h
 #define Sd2PinMap_h
 
+#include "platform_conf.h"
 #include <Arduino.h>
+
+#ifndef __STM32F4xx__
+#define WiringPinMode uint8_t
+#endif
 
 uint8_t const SS_PIN = SS;
 uint8_t const MOSI_PIN = MOSI;
 uint8_t const MISO_PIN = MISO;
 uint8_t const SCK_PIN = SCK;
 
+uint8_t badPinNumber(void)
+  __attribute__((error("Pin number is too large or not a constant")));
+
+static inline __attribute__((always_inline))
+  void setPinMode(uint8_t pin, WiringPinMode mode) {  
+    pinMode(pin, mode);
+}
+static inline __attribute__((always_inline))
+  uint8_t fastDigitalRead(uint8_t pin) {
+    return digitalRead(pin);
+}
+static inline __attribute__((always_inline))
+  void fastDigitalWrite(uint8_t pin, uint8_t value) {
+    digitalWrite(pin, value);
+}
 #endif // Sd2PinMap_h
 
 #elif defined(__AVR__) // Other AVR based Boards follows
@@ -283,7 +305,7 @@ static const pin_map_t digitalPinMap[] = {
   {&DDRF, &PINF, &PORTF, 7}   // F7 45
 };
 //------------------------------------------------------------------------------
-#else  // defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
+#else   // defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
 // 168 and 328 Arduinos
 
 // Two Wire (aka I2C) ports
@@ -320,13 +342,14 @@ static const pin_map_t digitalPinMap[] = {
 };
 #endif  // defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
 //------------------------------------------------------------------------------
+  
 static const uint8_t digitalPinCount = sizeof(digitalPinMap)/sizeof(pin_map_t);
 
 uint8_t badPinNumber(void)
   __attribute__((error("Pin number is too large or not a constant")));
 
 static inline __attribute__((always_inline))
-  uint8_t getPinMode(uint8_t pin) {
+  uint8_t getPinMode(uint8_t pin) {  
   if (__builtin_constant_p(pin) && pin < digitalPinCount) {
     return (*digitalPinMap[pin].ddr >> digitalPinMap[pin].bit) & 1;
   } else {

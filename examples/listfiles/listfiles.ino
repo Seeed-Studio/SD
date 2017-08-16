@@ -13,11 +13,11 @@
  created   Nov 2010 by David A. Mellis
  modified 9 Apr 2012 by Tom Igoe
  modified 13 June 2012 by Limor Fried
+ modified 16 Aug 2017  by Lambor Fang
  
  This example code is in the public domain.
  	 
  */
-#include <SPI.h>
 #include <SD.h>
 
 File root;
@@ -26,18 +26,11 @@ File root;
 //     Arduino Ethernet shield: pin 4
 //     Adafruit SD shields and modules: pin 10
 //     Sparkfun SD shield: pin 8
-const int chipSelect = 4;
+const int chipSelect = 43;
 
 void setup()
 {
-  // Open serial communications and wait for port to open:
-  Serial.begin(9600);
-   while (!Serial) {
-    ; // wait for serial port to connect. Needed for Leonardo only
-  }
-
-
-  Serial.print("Initializing SD card...");
+  SerialUSB.print("Initializing SD card...");
   // On the Ethernet Shield, CS is pin 4. It's set as an output by default.
   // Note that even if it's not used as the CS pin, the hardware SS pin 
   // (10 on Arduino Uno boards, 53 on the Mega) must be left as an output 
@@ -45,16 +38,16 @@ void setup()
   pinMode(SS, OUTPUT);
 
   if (!SD.begin(chipSelect)) {
-    Serial.println("initialization failed!");
+    SerialUSB.println("initialization failed!");
     return;
   }
-  Serial.println("initialization done.");
+  SerialUSB.println("initialization done.");
 
   root = SD.open("/");
   
   printDirectory(root, 0);
   
-  Serial.println("done!");
+  SerialUSB.println("done!");
 }
 
 void loop()
@@ -70,22 +63,22 @@ void printDirectory(File dir, int numTabs) {
      File entry =  dir.openNextFile();
      if (! entry) {
        // no more files
-       //Serial.println("**nomorefiles**");
+       //SerialUSB.println("**nomorefiles**");
        break;
      }
      for (uint8_t i=0; i<numTabs; i++) {
-       Serial.print('\t');   // we'll have a nice indentation
+       SerialUSB.print('\t');   // we'll have a nice indentation
      }
      // Print the 8.3 name
-     Serial.print(entry.name());
+     SerialUSB.print(entry.name());
      // Recurse for directories, otherwise print the file size
      if (entry.isDirectory()) {
-       Serial.println("/");
+       SerialUSB.println("/");
        printDirectory(entry, numTabs+1);
      } else {
        // files have sizes, directories do not
-       Serial.print("\t\t");
-       Serial.println(entry.size(), DEC);
+       SerialUSB.print("\t\t");
+       SerialUSB.println(entry.size(), DEC);
      }
      entry.close();
    }

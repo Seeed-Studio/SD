@@ -17,7 +17,10 @@
  * along with the Arduino Sd2Card Library.  If not, see
  * <http://www.gnu.org/licenses/>.
  */
-#define USE_SPI_LIB
+ 
+// #define USE_SPI_LIB
+#include "platform_conf.h"
+
 #if ARDUINO >= 100
 #include "Arduino.h"
 #else
@@ -27,7 +30,8 @@
 //------------------------------------------------------------------------------
 #ifdef __arm__
 static int8_t mosiPin_, misoPin_, clockPin_;
-static volatile RwReg *mosiport, *clkport, *misoport;
+// static volatile RwReg *mosiport, *clkport, *misoport;
+static volatile uint8_t *mosiport, *clkport, *misoport;
 static uint32_t mosipinmask, clkpinmask, misopinmask;
 #else
 static int8_t mosiPin_, misoPin_, clockPin_;
@@ -83,7 +87,9 @@ static uint8_t mosipinmask, clkpinmask, misopinmask;
   } else {
     uint8_t data = 0;
     // no interrupts during byte receive - about 8 us
+#ifndef __STM32F4xx__
     noInterrupts();
+#endif  // #ifndef __STM32F4xx__    
     // output pin high - like sending 0XFF
     *mosiport |= mosipinmask;
     
@@ -101,7 +107,9 @@ static uint8_t mosipinmask, clkpinmask, misopinmask;
       nop;
     }
     // enable interrupts
+#ifndef __STM32F4xx__
     interrupts();
+#endif // #ifndef __STM32F4xx__    
     return data;
     } 
   }
@@ -111,7 +119,9 @@ static uint8_t mosipinmask, clkpinmask, misopinmask;
   uint8_t spiRec(void) {
     uint8_t data = 0;
     // no interrupts during byte receive - about 8 us
+#ifndef __STM32F4xx__    
     cli();
+#endif // #ifndef __STM32F4xx__    
     // output pin high - like sending 0XFF
     fastDigitalWrite(SPI_MOSI_PIN, HIGH);
 
@@ -129,15 +139,20 @@ static uint8_t mosipinmask, clkpinmask, misopinmask;
       fastDigitalWrite(SPI_SCK_PIN, LOW);
     }
     // enable interrupts
+#ifndef __STM32F4xx__ 
     sei();
+#endif // #ifndef __STM32F4xx__     
     return data;
   }
   //------------------------------------------------------------------------------
   /** Soft SPI send */
   void spiSend(uint8_t data) {
     // no interrupts during byte send - about 8 us
+#ifndef __STM32F4xx__ 
     cli();
+#endif  // #ifndef __STM32F4xx__ 
     for (uint8_t i = 0; i < 8; i++) {
+
       fastDigitalWrite(SPI_SCK_PIN, LOW);
 
       fastDigitalWrite(SPI_MOSI_PIN, data & 0X80);
@@ -154,7 +169,9 @@ static uint8_t mosipinmask, clkpinmask, misopinmask;
 
     fastDigitalWrite(SPI_SCK_PIN, LOW);
     // enable interrupts
+#ifndef __STM32F4xx__ 
     sei();
+#endif // #ifndef __STM32F4xx__     
   }
 #endif  // SOFTWARE_SPI
 //------------------------------------------------------------------------------
@@ -290,6 +307,10 @@ uint8_t Sd2Card::init(uint8_t sckRateID, uint8_t chipSelectPin, int8_t mosiPin, 
   uint16_t t0 = (uint16_t)millis();
   uint32_t arg;
 
+  // Enable SDCard power 
+  pinMode(15, OUTPUT);
+  digitalWrite(15, HIGH);
+  
   // set pin modes
   pinMode(chipSelectPin_, OUTPUT);
   chipSelectHigh();
@@ -299,12 +320,14 @@ uint8_t Sd2Card::init(uint8_t sckRateID, uint8_t chipSelectPin, int8_t mosiPin, 
     pinMode(misoPin_, INPUT);
     pinMode(mosiPin_, OUTPUT);
     pinMode(clockPin_, OUTPUT);
+#ifndef __STM32F4xx__    
     clkport     = portOutputRegister(digitalPinToPort(clockPin_));
     clkpinmask  = digitalPinToBitMask(clockPin_);
     mosiport    = portOutputRegister(digitalPinToPort(mosiPin_));
     mosipinmask = digitalPinToBitMask(mosiPin_);
     misoport    = portInputRegister(digitalPinToPort(misoPin_));
     misopinmask = digitalPinToBitMask(misoPin_);
+#endif // #ifndef __STM32F4xx__    
   } else {
 
     #ifndef USE_SPI_LIB
@@ -553,6 +576,7 @@ uint8_t Sd2Card::readRegister(uint8_t cmd, void* buf) {
  * false, is returned for an invalid value of \a sckRateID.
  */
 uint8_t Sd2Card::setSckRate(uint8_t sckRateID) {
+#ifndef SOFTWARE_SPI  
   if (sckRateID > 6) {
     error(SD_CARD_ERROR_SCK_RATE);
     return false;
@@ -584,6 +608,7 @@ uint8_t Sd2Card::setSckRate(uint8_t sckRateID) {
 #endif // SPI_CLOCK_DIV128
   SPI.setClockDivider(v);
 #endif // USE_SPI_LIB
+#endif // SOFTWARE_SPI
   return true;
 }
 //------------------------------------------------------------------------------
